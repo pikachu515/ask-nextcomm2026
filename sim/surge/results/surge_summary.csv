@@ -1,0 +1,5 @@
+﻿policy,label,n_seeds,block_veh_min_mean,block_veh_min_ci95,reduction_pct_mean,reduction_pct_ci95,peak_stalled_mean,peak_blocking_mean,p95_resolve_s_mean
+human,사람만,100,2853.3,58.3,0.0,0.0,146.3,88.7,1462.0
+machine,+교차로 응답,100,1777.4,57.4,37.8,1.4,95.6,57.9,1364.0
+qos,+통신 보장,100,918.7,46.2,68.1,1.2,59.6,37.2,708.0
+full,+우선·대피,100,216.5,4.3,92.4,0.1,59.1,13.4,1067.0
