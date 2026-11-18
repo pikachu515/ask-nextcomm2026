@@ -1,4 +1,4 @@
-"""정전 때 '먼저 알리기' 모의실험 (개념 검증)
+"""정전 시 사전 알림 모의실험 (개념 검증)
 
 요청 폭주 모의실험(sim/surge)과 같은 도시, 같은 30분, 같은 난수를 쓴다.
 다른 점은 하나다. 비상 전원이 있는 교차로가 "신호 꺼짐"을 먼저 알리면,
@@ -153,7 +153,7 @@ def set_font():
 
 
 def main():
-    ap = argparse.ArgumentParser(description="정전 때 먼저 알리기 모의실험")
+    ap = argparse.ArgumentParser(description="정전 시 사전 알림 모의실험")
     ap.add_argument("--seeds", type=int, default=100)
     ap.add_argument("--sweep-seeds", type=int, default=30)
     args = ap.parse_args()
@@ -221,7 +221,7 @@ def main():
             ax.text(bb.get_x() + bb.get_width() / 2, v * 1.02, f"{v:,.0f}", ha="center", fontsize=10)
         ax.set_title(title, fontsize=11)
         ax.spines[["top", "right"]].set_visible(False)
-    fig.suptitle(f"정전 때 먼저 알리기 (비상 전원 교차로 {PARAMS['p_power']:.0%}, 가정값 기준, 시드 {args.seeds}개 평균)", fontsize=11)
+    fig.suptitle(f"정전 시 사전 알림 (비상 전원 교차로 {PARAMS['p_power']:.0%}, 가정값 기준, 시드 {args.seeds}개 평균)", fontsize=11)
     fig.tight_layout()
     fig.savefig(out / "fig1_blackout_compare.png", dpi=150)
     plt.close(fig)

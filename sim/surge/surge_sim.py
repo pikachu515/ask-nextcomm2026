@@ -1,7 +1,7 @@
 """요청 폭주 시뮬레이션 (개념 검증)
 
 무인 자율주행차 N대가 달리는 도시에서 정전 같은 사건이 터져 도움 요청이
-한꺼번에 몰리는 30분을 2초 단위로 흉내 낸다. 통신 물리 계층이나 실제 차량
+한꺼번에 몰리는 30분을 2초 단위로 모의한다. 통신 물리 계층이나 실제 차량
 거동은 다루지 않는다. 입력값은 모두 가정이며 README.md 의 표에 정리돼 있다.
 
 비교 방식 (아래로 갈수록 기능이 하나씩 더해진다)
@@ -63,7 +63,7 @@ DRIVING, WAIT_MACHINE, WAIT_HUMAN, IN_SERVICE = 0, 1, 2, 3
 
 
 def simulate(seed, ai=False, qos=False, prio=False, pull=False, **override):
-    """한 번의 90분을 흉내 내고 시간별 기록과 요약 지표를 돌려준다."""
+    """90분 1회를 모의하고 시간별 기록과 요약 지표를 반환한다."""
     p = {**PARAMS, **override}
     rng = np.random.default_rng(seed)
     n, m = p["N"], p["M"]

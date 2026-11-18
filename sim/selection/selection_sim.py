@@ -1,6 +1,6 @@
-"""정보 고르기 모의실험 (개념 검증)
+"""정보 선택 모의실험 (개념 검증)
 
-네 갈래 교차로 하나에서 8초 동안을 0.1초 단위로 흉내 낸다.
+4지 교차로 하나에서 8초 동안을 0.1초 단위로 모의한다.
   - 차 24대(갈래마다 6대)가 정지선으로 다가온다. 직진, 좌회전, 우회전 중 하나를 한다.
   - 보행자 12명이 네 횡단보도를 건넌다.
   - 일부 갈래에는 안쪽 차로에 대형 차량이 서 있어 바깥 차로 차의 시야를 가린다.
@@ -59,7 +59,7 @@ PARAMS = dict(
     refresh=0.3,             # ASK가 같은 차에 같은 보행자를 다시 보내는 간격 [s]
     cpm_dt=0.5, cpm_move=1.0,
     p_occ_err=0.10,          # 길가 센서가 "그 차에서 보이는가"를 잘못 판단할 확률 (매 순간)
-    p_route_err=0.10,        # 길가 센서가 차의 진행 방향(직진/좌/우)을 잘못 짐작할 확률 (차마다)
+    p_route_err=0.10,        # 길가 센서가 차의 진행 방향(직진/좌/우)을 잘못 추정할 확률 (차마다)
 )
 
 HALF = 7.0                   # 도로 반폭 [m]
@@ -275,7 +275,7 @@ def summarize(seeds, **override):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="정보 고르기 모의실험")
+    ap = argparse.ArgumentParser(description="정보 선택 모의실험")
     ap.add_argument("--seeds", type=int, default=100)
     ap.add_argument("--sweep-seeds", type=int, default=30)
     args = ap.parse_args()
@@ -307,13 +307,13 @@ def main():
         w = csv.DictWriter(f, fieldnames=list(rows[0]))
         w.writeheader(); w.writerows(rows)
 
-    # 길가 센서의 짐작이 틀리는 정도에 따라
+    # 노변 센서의 추정 오차에 따른 민감도
     err_rows = []
     for e in (0.0, 0.05, 0.10, 0.20, 0.30):
         rr = summarize(range(args.sweep_seeds), p_occ_err=e, p_route_err=e)
         err_rows.append(dict(est_err=e, ask_miss_pct=round(rr["ask"]["miss_pct"], 2),
                              bcast_all_miss_pct=round(rr["bcast_all"]["miss_pct"], 2)))
-    print("짐작 오차 →", [(r["est_err"], r["ask_miss_pct"]) for r in err_rows])
+    print("추정 오차 →", [(r["est_err"], r["ask_miss_pct"]) for r in err_rows])
     with (out / "selection_error_sweep.csv").open("w", newline="", encoding="utf-8-sig") as f:
         w = csv.DictWriter(f, fieldnames=list(err_rows[0]))
         w.writeheader(); w.writerows(err_rows)
