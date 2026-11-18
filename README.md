@@ -59,11 +59,11 @@ $$\mathrm{Valid}_{ij} = S_j \wedge C_{ij} \wedge (\Delta_{ij} \le \mathrm{TTL}_j
 | 모의실험 | 비교 | 결과 | 코드 |
 |---|---|---|---|
 | 요청 폭주 | 원격 관제사만 → 교차로 응답 + 관제 영상 품질 유지 | 차로 점유 시간 **68% 감소** (2,853 → 919 차량·분) | [surge](sim/surge) |
-| SafeLink 전송 | 도착 순서 → 필요할 때만 두 경로 | 긴급 정보 제시간 전달률 **53.9% → 96.2%** | [safelink](sim/safelink) |
-| 정전 사전 알림 | 교차로 응답 → + 신호 꺼짐 사전 알림 | 교차로가 받는 질의 **16% 감소**, 차로 점유 추가 6.8% 감소 | [blackout](sim/blackout) |
+| SafeLink 전송 | 도착 순서 → 필요할 때만 두 경로 | 긴급 정보 제시간 전달률 **53.9% → 96.2%** (긴급 순서만으로 92.1%, 두 경로가 +4%p) | [safelink](sim/safelink) |
+| 정전 사전 알림 | 교차로 응답 → + 신호 꺼짐 사전 알림 | 차량 질의 **16% 감소** (원격 관제사 요청은 5% 감소), 차로 점유 추가 6.8% 감소 | [blackout](sim/blackout) |
 | 정보 선택 | 전체 순환 방송 → AoI·폐색·TTC 선택 | 필수 보행자 정보 누락 **36.4% → 7.0%**, 사용 자원 1/3 | [selection](sim/selection) |
 | 마감시각 순서 | 도착 순서 → 통신·AI 모두 마감 순서 | 마감 내 응답 **92.5% → 98.3%** | [deadline](sim/deadline) |
-| 교통 영향 (SUMO) | 도착 순서 → 마감 순서 + 사전 회신 | 늦은 응답으로 인한 교통 손실 **64~77% 감소** | [sumo_crossing](sim/sumo_crossing) |
+| 교통 영향 (SUMO) | 도착 순서 → 마감 순서 + 사전 회신 | 처리량 초과 시 늦은 응답의 교통 손실 **77% 감소** (24.8 → 5.7 차량·분, 시드 10개). 마감 순서만으로는 오히려 증가 | [sumo_crossing](sim/sumo_crossing) |
 
 <p align="center"><img src="assets/fig10_sim_summary.png" width="95%" alt="모의실험 요약"></p>
 
