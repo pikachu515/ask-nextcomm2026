@@ -4,99 +4,74 @@
 
 <br>
 
-**2026 차세대통신 X 융합 창업 아이디어 경진대회 · 제안 설계 저장소**
+**2026 차세대통신 X 융합 창업 아이디어 경진대회 · 아이디어 ASK의 제안서와 모의실험 코드**
 
-![status](https://img.shields.io/badge/status-drafting-2563eb)
-![deadline](https://img.shields.io/badge/deadline-2026.11.18-dc2626)
-![proposal](https://img.shields.io/badge/proposal-max_10_pages-475569)
+![proposal](https://img.shields.io/badge/proposal-PDF_10p-1f3a5f)
+![simulations](https://img.shields.io/badge/simulations-6-0f766e)
 ![python](https://img.shields.io/badge/python-3.10+-3776ab)
-![repo](https://img.shields.io/badge/repo-private-111827)
+![sumo](https://img.shields.io/badge/SUMO-1.28-475569)
 
-[한눈에 보기](#한눈에-보기) · [제안서](docs/proposal/README.md) · [대회 규정](docs/contest/rules.md) · [사실 카드](docs/evidence/facts.md) · [시뮬레이션](sim/README.md) · [역할과 일정](docs/team/roles.md)
+[제안서 PDF](proposal/ASK_아이디어_제안서.pdf) · [모의실험](sim/README.md) · [실행 방법](#실행-방법) · [저장소 구성](#저장소-구성)
 
 </div>
 
 ---
 
-## 한눈에 보기
+## 개요
 
-운전자가 없는 자율주행차는 판단이 서지 않으면 상황실의 사람에게 묻는다. 정전이나 큰 행사로 여러 대가 한꺼번에 물으면 통신도 사람도 모자라서, 차들이 도로를 막고 선다. 2023년과 2025년 샌프란시스코에서 실제로 일어난 일이다.
+운전자 없는 자율주행차는 판단이 어려우면 운영 회사 관제센터의 **원격 관제사**에게 확인을 요청한다. 정전이나 대형 행사처럼 하나의 사건이 여러 차량의 요청을 동시에 만들면, 무선망과 관제센터가 함께 포화되어 응답을 기다리는 차량이 도로를 막는다. 2025년 12월 샌프란시스코 정전 당시 실제로 발생한 상황이다.
 
-**ASK**는 사람보다 교차로가 먼저 답하게 한다. 신호가 무슨 색인지, 횡단보도에 사람이 있는지는 교차로가 이미 알고 있기 때문이다.
+**ASK(Ask · Schedule · Know)** 는 교차로 장치가 이미 확보한 안전 정보를 필요한 차량에 먼저 전달하고, 남은 질의를 차량의 **안전 판단 마감시각** 순서로 처리하는 차세대통신 서비스다.
 
-```mermaid
-flowchart LR
-    A["1단계<br/>차량 스스로 판단"] -->|막히면| B["2단계<br/>교차로가 답함<br/>센서 · 신호제어기 · 기지국 AI"]
-    B -->|못 풀면| C["3단계<br/>사람 관제사<br/>급한 차부터 배정"]
-    C -->|답이 없으면| D["4단계<br/>정지선 전 정지<br/>또는 갓길 대피"]
-```
+<p align="center"><img src="assets/fig0_pipeline.png" width="92%" alt="ASK 핵심 흐름"></p>
 
 | 구분 | 내용 |
 |---|---|
-| 문제 | 사건 하나가 여러 차량의 요청을 동시에 만들고, 그 순간 통신망과 관제사가 함께 부족해진다 |
-| 해결 | 쉬운 질문은 교차로가 바로 답하고, 사람은 어려운 질문만 맡는다. 답이 없으면 차는 안전하게 비켜선다 |
-| 차세대통신의 역할 | 급한 요청 먼저 보내기, 두 경로로 함께 보내기(통신 모듈 SafeLink), 기지국 옆 AI(AI-RAN) |
-| 검증 | 가정값 기준 모의실험 두 가지. 실제 도로나 실제 통신망 측정은 아니다 |
+| 문제 | 동일 사건으로 요청이 집중되면 무선망·엣지 서버·원격 관제사의 대기열이 함께 늘어남 |
+| 해결 | 교차로 장치가 공통 사건을 먼저 알리고, AoI·폐색·TTC로 차량별 필요 정보를 선별하며, 마감시각 순서로 응답 |
+| 차세대통신 | AI-RAN·엣지 컴퓨팅, 5G MBS, NR-PC5 직접통신, 선택적 이중 경로 전송(SafeLink) |
+| 원칙 | 외부 정보는 조언이며, 최종 판단은 차량이 수행함. 응답이 없으면 차량은 정지선 앞에 정지 |
 
-## 제출물과 상태
+## 서비스 구조
 
-| 제출물 | 형식 | 정본 위치 | 상태 |
+막힌 차량은 아래 순서로 답을 구한다. 대부분의 질의가 교차로 장치에서 해결되면 원격 관제사와 관제 영상 통신에 여유가 생긴다.
+
+<p align="center"><img src="assets/fig1_flow.png" width="92%" alt="네 단계 응답 구조"></p>
+
+## 핵심 모델
+
+차량의 안전 여유를 통신의 응답 마감시각으로 변환하여, 무선 전송과 기지국 옆 AI의 처리 순서에 함께 적용한다.
+
+$$d_{\mathrm{stop}} = v\tau + \frac{v^2}{2a} + m, \qquad D_{\mathrm{net}} \approx \max\left(0,\ \frac{L - d_{\mathrm{stop}}}{v} - T_{\mathrm{verify}}\right)$$
+
+<p align="center"><img src="assets/fig6_timebar.png" width="85%" alt="마감시각 구성"></p>
+
+보행자 정보는 유효성을 먼저 확인한 뒤, 차량별 정보 가치로 전송 대상을 고른다.
+
+$$\mathrm{Valid}_{ij} = S_j \wedge C_{ij} \wedge (\Delta_{ij} \le \mathrm{TTL}_j), \qquad V_{ij} = R_{ij}\,[\,\eta + (1-\eta)\,O_{ij}\,]\,N_{ij}\,U_{ij}$$
+
+기호와 전체 수식은 [제안서 PDF](proposal/ASK_아이디어_제안서.pdf) 2·5·6·7장에 있다.
+
+## 모의실험 결과
+
+모든 결과는 **가정값 기준** 모의실험이며, 실제 도로나 5G 망에서 측정한 값이 아니다.
+
+| 모의실험 | 비교 | 결과 | 코드 |
 |---|---|---|---|
-| 아이디어 제안서 | PPT 또는 PDF, 10쪽 이내 | [docs/proposal](docs/proposal/README.md) | 쪽별 글 초안 완료, 슬라이드 조립 전 |
-| 참가신청서 | 주최 측 양식(HWP) | [docs/application](docs/application/application-form.md) | 기입 안내 완료, 팀명과 역할 확정 전 |
+| 요청 폭주 | 원격 관제사만 → 교차로 응답 + 관제 영상 품질 유지 | 차로 점유 시간 **68% 감소** (2,853 → 919 차량·분) | [surge](sim/surge) |
+| SafeLink 전송 | 도착 순서 → 필요할 때만 두 경로 | 긴급 정보 제시간 전달률 **53.9% → 96.2%** | [safelink](sim/safelink) |
+| 정전 사전 알림 | 교차로 응답 → + 신호 꺼짐 사전 알림 | 교차로가 받는 질의 **16% 감소**, 차로 점유 추가 6.8% 감소 | [blackout](sim/blackout) |
+| 정보 선택 | 전체 순환 방송 → AoI·폐색·TTC 선택 | 필수 보행자 정보 누락 **36.4% → 7.0%**, 사용 자원 1/3 | [selection](sim/selection) |
+| 마감시각 순서 | 도착 순서 → 통신·AI 모두 마감 순서 | 마감 내 응답 **92.5% → 98.3%** | [deadline](sim/deadline) |
+| 교통 영향 (SUMO) | 도착 순서 → 마감 순서 + 사전 회신 | 늦은 응답으로 인한 교통 손실 **64~77% 감소** | [sumo_crossing](sim/sumo_crossing) |
 
-쪽별 진행 상황은 [제안서 목차](docs/proposal/README.md)의 상태표가 정본이다.
+<p align="center"><img src="assets/fig10_sim_summary.png" width="95%" alt="모의실험 요약"></p>
 
-## 일정
+각 폴더의 README에 가정값, 전체 결과, 불리한 조건이 정리되어 있다. 예를 들어 무선 자원이 충분하고 방송 비용이 낮으면 전체 방송이 정보 선택보다 누락이 적으며(1% 대 7%), 처리량을 넘는 부하에서는 마감 순서만으로는 교통 손실이 줄지 않는다.
 
-| 날짜 | 할 일 |
-|---|---|
-| 11.16 (월) | 역할과 팀명 확정, 쪽별 글 확정 |
-| 11.17 (화) | 슬라이드 10쪽 조립, 서로 바꿔 읽기, 참가신청서 작성 |
-| **11.18 (수) 오전** | **구글폼 제출** (접수 마감일) |
-| 12.3 (목) | 예선 결과 발표 (본선 8~10팀) |
-| 12.16 (수) | 본선 발표 자료 제출 (10분 이내) |
-| 12.18 (금) | 본선 발표와 시상 (코엑스) |
+## 실행 방법
 
-세부 일정은 [docs/team/schedule.md](docs/team/schedule.md), 제출 전 점검 항목은 [제출 체크리스트](docs/contest/submission-checklist.md)에 있다.
-
-## 저장소 지도
-
-```
-ask-nextcomm2026
-├── README.md                 대문 (지금 이 문서)
-├── AGENTS.md                 AI 도우미가 가장 먼저 읽는 작업 안내
-├── docs
-│   ├── contest               대회 규정, 심사 기준, 제출 체크리스트
-│   ├── proposal              제안서 10쪽 (쪽마다 파일 하나)
-│   ├── design                서비스 구조, 메시지 규격, 통신 모듈, 용어집
-│   ├── evidence              사실 카드: 인용할 수치와 출처, 확인 상태
-│   ├── plain                 쉬운 말 쓰기 규칙, 한 장 소개, 발표 대본, 예상 질문
-│   ├── application           참가신청서 기입 안내
-│   ├── team                  역할 분담과 일정
-│   └── decisions             팀 결정 기록
-├── sim
-│   ├── surge                 요청 폭주 모의실험
-│   └── safelink              긴급 정보 전달률 모의실험
-├── refs                      주최 측 원본 자료
-└── assets                    대문 그림
-```
-
-문서별 용도는 [문서 지도](docs/README.md)에 정리돼 있다.
-
-## 처음 온 팀원에게
-
-1. 저장소를 받는다.
-
-   ```bash
-   git clone https://github.com/pikachu515/ask-nextcomm2026.git
-   ```
-
-2. [대회 규정](docs/contest/rules.md)과 [역할 분담](docs/team/roles.md)을 읽고 맡을 쪽을 확인한다.
-3. 맡은 쪽 파일(`docs/proposal/pNN-*.md`)을 고친다. 숫자를 쓸 때는 [사실 카드](docs/evidence/facts.md)에 있는 것만 쓴다.
-4. 글을 쓰기 전에 [쉬운 말 쓰기 규칙](docs/plain/style-guide.md)을 한 번 읽는다. 독자는 통신을 배우지 않은 대학생이다.
-
-모의실험을 돌려 보려면 Python 3.10 이상이 필요하다.
+Python 3.10 이상이 필요하다.
 
 ```bash
 pip install -r requirements.txt
@@ -104,33 +79,34 @@ pip install -r requirements.txt
 
 ```bash
 python sim/surge/surge_sim.py
-```
-
-```bash
 python sim/safelink/safelink_eval.py
+python sim/blackout/blackout_sim.py
+python sim/selection/selection_sim.py
+python sim/deadline/deadline_sim.py
+python sim/sumo_crossing/crossing_sumo.py
 ```
 
-## AI 도우미로 작업하기
+결과는 각 폴더의 `results`에 저장된다. 난수 시드가 고정되어 있어 다시 실행하면 같은 값이 나온다. SUMO 실험은 PyPI의 `eclipse-sumo`(1.28.0)와 `traci`를 사용한다.
 
-Claude Code, Codex 같은 AI 코딩 도구는 저장소의 [`AGENTS.md`](AGENTS.md)를 자동으로 읽는다. 대회 규정, 써도 되는 수치, 글쓰기 규칙, 하지 말아야 할 일이 거기에 들어 있다.
+## 저장소 구성
 
-채팅형 AI(ChatGPT, Claude 앱 등)를 쓸 때는 아래 세 파일을 함께 붙여 넣으면 같은 기준으로 작업한다.
+```text
+ask-nextcomm2026/
+├── proposal/
+│   └── ASK_아이디어_제안서.pdf     제출한 아이디어 제안서 (10쪽)
+├── sim/
+│   ├── surge/                      요청 폭주 시 차로 점유
+│   ├── safelink/                   긴급 정보 이중 경로 전송
+│   ├── blackout/                   정전 시 사전 알림
+│   ├── selection/                  AoI·폐색·TTC 기반 정보 선택
+│   ├── deadline/                   통신·AI 마감시각 순서 처리
+│   └── sumo_crossing/              SUMO 교차로 교통 영향
+├── assets/                         README 그림
+└── requirements.txt
+```
 
-| 붙여 넣을 파일 | 담긴 내용 |
-|---|---|
-| [`AGENTS.md`](AGENTS.md) | 작업 규칙과 프로젝트 요약 |
-| [`docs/evidence/facts.md`](docs/evidence/facts.md) | 써도 되는 수치와 출처 |
-| 맡은 쪽 파일 | 지금 고칠 글 |
+## 향후 계획
 
-## 작업 규칙
-
-- 자기가 맡은 쪽 파일은 `main`에 바로 커밋해도 된다.
-- 여럿이 함께 쓰는 파일(`AGENTS.md`, `docs/contest`, `docs/evidence`, `docs/decisions`)은 Pull Request로 올려 한 명 이상의 확인을 받는다.
-- 커밋 메시지는 `범위: 한 일` 형식으로 쓴다. 예: `p06: 응답 기한 표 수정`, `sim: 시드 100개로 재실행`.
-- 이름, 연락처 같은 개인정보는 어떤 파일에도 쓰지 않는다. 참가신청서는 각자 컴퓨터에서 작성한다.
-
-## 수치와 자료에 대한 고지
-
-- 모의실험 수치는 모두 가정값에서 나온 개념 검증 결과다. 실제 5G·6G 기지국 측정이나 자율주행 안전성 입증이 아니다.
-- 인용 수치의 출처와 확인 상태는 [사실 카드](docs/evidence/facts.md)에 적혀 있다. '원문 확인'이 아닌 항목은 제안서에 넣기 전에 원문을 확인한다.
-- 2단계의 도로변 센서 구성과 시연 장면은 연구실 브리핑을 허락받아 참고했다. 범위는 [결정 기록 0003](docs/decisions/0003-lab-briefing-scope.md)에 있다.
+- 5G 통신 시뮬레이터(ns-3 5G-LENA)로 방송과 개별 전송의 실제 무선 자원 비용을 측정
+- SUMO 실험을 신호 교차로와 다수 교차로로 확장
+- 노변 센서와 시험용 무선 장비로 교차로 응답 과정을 실물 시연

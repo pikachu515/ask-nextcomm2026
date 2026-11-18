@@ -1,2 +1,5 @@
 numpy>=1.26
 matplotlib>=3.8
+# SUMO 교통 모의실험 (sim/sumo_crossing)
+eclipse-sumo==1.28.0
+traci==1.28.0

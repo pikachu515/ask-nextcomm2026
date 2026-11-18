@@ -7,7 +7,7 @@
 비교 방식 (아래로 갈수록 기능이 하나씩 더해진다)
   human    사람만        관제사가 온 순서대로 처리. 혼잡하면 영상이 느려 처리도 느려진다
   machine  +교차로 응답  확인형 질문은 교차로 장비와 기지국 AI가 먼저 답한다 (ASK 2단계)
-  qos      +통신 보장    관제사가 맡은 차량의 영상 품질을 지킨다 (ASK 3단계)
+  qos      +영상 품질   관제사가 맡은 차량의 영상 품질을 지킨다 (ASK 3단계)
   full     +우선·대피    도로를 막은 차량부터 배정하고, 기한을 넘기면 갓길로 비킨다 (ASK 3·4단계)
 
 실행
@@ -50,9 +50,9 @@ PARAMS = dict(
 )
 
 POLICIES = [
-    ("human", "사람만", dict()),
+    ("human", "원격 관제사만", dict()),
     ("machine", "+교차로 응답", dict(ai=True)),
-    ("qos", "+통신 보장", dict(ai=True, qos=True)),
+    ("qos", "+영상 품질 지킴", dict(ai=True, qos=True)),
     ("full", "+우선·대피", dict(ai=True, qos=True, prio=True, pull=True)),
 ]
 
@@ -138,7 +138,7 @@ def simulate(seed, ai=False, qos=False, prio=False, pull=False, **override):
                     order = np.argsort(t_req[waiting], kind="stable")
                 status[waiting[order[:free]]] = IN_SERVICE
 
-        # 5) 관제사 처리: 혼잡하면 영상 품질만큼 느려진다 (통신 보장이면 정상 속도)
+        # 5) 관제사 처리: 혼잡하면 영상 품질만큼 느려진다 (영상 품질을 지키면 정상 속도)
         serving = np.flatnonzero(status == IN_SERVICE)
         if serving.size:
             speed = 1.0 if (qos or not event) else p["q_congested"]
@@ -241,7 +241,7 @@ def main():
         ys = [np.mean([simulate(s, **flags, ai_resolve=x)["block_veh_min"] for s in sweep_seeds])
               for x in ratios]
         ax.plot(ratios, ys, marker="o", linewidth=2, label=label)
-    ax.axhline(base.mean(), color="0.5", linestyle="--", label="사람만")
+    ax.axhline(base.mean(), color="0.5", linestyle="--", label="원격 관제사만")
     ax.set_xlabel("교차로 장비·기지국 AI가 확인형 질문을 해결하는 비율")
     ax.set_ylabel("차로 점유 차량·분")
     ax.set_title("기계가 답하는 비율과 차로 점유 시간 (가정값 기준)")

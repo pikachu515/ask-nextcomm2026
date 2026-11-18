@@ -7,7 +7,7 @@ venv/
 # 모의실험: 시드별 원자료는 다시 만들 수 있으므로 올리지 않는다
 sim/**/results/*_raw.csv
 
-# 올리지 않는 자료: 연구실 브리핑 원본, 팀원 개인 문서, 작성한 참가신청서
+# 올리지 않는 자료
 refs/private/
 *.zip
 
@@ -19,3 +19,6 @@ Thumbs.db
 desktop.ini
 ~$*
 *.tmp
+
+# SUMO 실행 시 만들어지는 도로망·경로 파일
+sim/sumo_crossing/net/

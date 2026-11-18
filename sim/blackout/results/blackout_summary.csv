@@ -1,0 +1,4 @@
+﻿policy,label,n_seeds,asked_mean,settled_by_notice_mean,to_human_mean,to_human_ci95,to_human_red_vs_human_pct,to_human_red_vs_machine_pct,block_veh_min_mean,block_veh_min_ci95,block_red_vs_human_pct,block_red_vs_machine_pct
+human,원격 관제사만,100,334.3,0.0,334.3,2.7,0.0,-58.9,2853.3,58.3,0.0,-62.8
+machine,+교차로 응답,100,447.7,0.0,210.7,2.3,36.9,0.0,1777.4,57.4,37.8,0.0
+notify,+먼저 알림,100,378.3,81.1,199.9,2.2,40.2,5.1,1658.4,58.3,42.0,6.8
